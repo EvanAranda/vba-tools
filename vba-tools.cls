@@ -61,21 +61,21 @@ Option Explicit
 
 Sub forEach(c As Collection, f As String)
     Dim i As Integer
-    For i = 1 To c.Count
+    For i = 1 To c.count
         Application.Run f, c(i), i, c
     Next i
 End Sub
 
 Function map(c As Collection, f As String) As Collection
     Dim i As Integer
-    For i = 1 To c.Count
+    For i = 1 To c.count
         map.Add (Application.Run(f, c(i), i, c))
     Next i
 End Function
 
 Function filter(c As Collection, f As String) As Collection
     Dim i As Integer
-    For i = 1 To c.Count
+    For i = 1 To c.count
         If Application.Run(f, c(i), i) = True Then filter.Add c(i)
     Next i
 End Function
@@ -94,7 +94,7 @@ End Function
 Function indexOf(c As Collection, v As Variant) As Integer
     Dim i As Integer
     indexOf = -1
-    For i = 1 To c.Count
+    For i = 1 To c.count
         If c(i) = v Then
             indexOf = i
             Exit Function
@@ -104,7 +104,7 @@ End Function
 
 Function pluck(c As Collection, key As String) As Collection
     Dim i As Integer
-    For i = 1 To c.Count
+    For i = 1 To c.count
         If isDictionary(c(i)) Then
             pluck.Add c(i)(key)
         Else
@@ -117,7 +117,7 @@ End Function
 Function max(c As Collection) As Variant
     Dim i As Integer
     max = c(1)
-    For i = 2 To c.Count
+    For i = 2 To c.count
         If c(i) > c(i - 1) Then
             max = c(i)
         End If
@@ -127,7 +127,7 @@ End Function
 Function min(c As Collection) As Variant
     Dim i As Integer
     min = c(1)
-    For i = 2 To c.Count
+    For i = 2 To c.count
         If c(i) < c(i - 1) Then
             min = c(i)
         End If
@@ -137,7 +137,7 @@ End Function
 Function isSorted(c As Collection) As Boolean
     Dim i As Integer
     isSorted = True
-    For i = 2 To c.Count
+    For i = 2 To c.count
         If c(i - 1) > c(i) Then
             isSorted = False
             Exit Function
@@ -148,7 +148,7 @@ End Function
 Function sort(c As Collection, Optional lo As Long = -1, Optional hi As Long = -1) As Collection
     ' QuickSort algorithm
     If lo = -1 Then lo = 1
-    If hi = -1 Then hi = c.Count
+    If hi = -1 Then hi = c.count
     
     Dim p As Long
     If lo < hi Then
@@ -161,7 +161,7 @@ End Function
 Function sortBy(ByVal c As Collection, key As String, Optional lo As Long = -1, Optional hi As Long = -1) As Collection
     ' QuickSort algorithm
     If lo = -1 Then lo = 1
-    If hi = -1 Then hi = c.Count
+    If hi = -1 Then hi = c.count
     
     Dim p As Long
     If lo < hi Then
@@ -171,32 +171,60 @@ Function sortBy(ByVal c As Collection, key As String, Optional lo As Long = -1, 
     End If
 End Function
 
-Function group()
-
+Function group(c As Collection, f As String) As Dictionary
+    Dim v As Variant, _
+        key As String
+        
+    For Each v In c
+        key = Application.Run(f, v)
+        If has(group, key) Then
+        Else
+            group.Add key, New Collection
+        End If
+        group.Item(key).Add v
+    Next v
+    
 End Function
 
-Function groupBy()
-
+Function groupBy(c As Collection, key As String) As Dictionary
+    
 End Function
 
 Function size(o As Object) As Collection
     If isRange(o) Then
-        size.Add o.Rows.Count
-        size.Add o.Columns.Count
+        size.Add o.Rows.count
+        size.Add o.Columns.count
     ElseIf isCollection(o) Then
-        size.Add o.Count
+        size.Add o.count
         If isCollection(o(1)) Then
-            size.Add o(1).Count
+            size.Add o(1).count
         Else
             size.Add 0
         End If
     ElseIf isDictionary(o) Then
-        size.Add o.Count
+        size.Add o.count
     End If
 End Function
+
 ' slice
+Function slice(c As Collection, a As Long, count As Long) As Collection
+    Dim i As Long
+    For i = a To a + count
+        slice.Add c(i)
+    Next i
+End Function
+
 ' splice
+Function splice(c As Collection, a As Long, count As Long, Optional replace As Collection) As Collection
+    Dim i As Long
+    For i = a To a + count
+        splice.Add c(a)
+        remove c, a
+    Next i
+End Function
+
 ' append
+
 ' without
 ' zip
 ' insert
@@ -293,18 +321,18 @@ Function fromRange(r As Range) As Collection
         c As New Collection
         
     a = r.value
-    is2D = r.Rows.Count > 1 And r.Columns.Count > 1
+    is2D = r.Rows.count > 1 And r.Columns.count > 1
     
     If is2D Then
-        For i = 1 To r.Rows.Count
+        For i = 1 To r.Rows.count
             c.Add New Collection
-            For j = 1 To r.Columns.Count
+            For j = 1 To r.Columns.count
                 c(i).Add a(i, j)
             Next j
         Next i
     Else
-        For i = 1 To r.Rows.Count
-            For j = 1 To r.Columns.Count
+        For i = 1 To r.Rows.count
+            For j = 1 To r.Columns.count
                 c.Add a(i, j)
             Next j
         Next i
@@ -325,8 +353,8 @@ Function fromTableRange(rTopLeft As Range) As Collection
         c As New Collection
         
     Set a = searchForTableRange(rTopLeft)
-    i = a.Rows.Count
-    j = a.Columns.Count
+    i = a.Rows.count
+    j = a.Columns.count
     
     a = a.value
     
@@ -351,7 +379,7 @@ Function toArray(c As Collection, Optional includeHead As Boolean = False) As Va
         
     If isDictionary(c(1)) Then
         Set k = keys(c(1))
-        ReDim a(1 To c.Count + 1, 1 To c(1).Count) As Variant
+        ReDim a(1 To c.count + 1, 1 To c(1).count) As Variant
 '        If includeHead Then
 '            ReDim a(1 To c.Count + 1, 1 To c(1).Count) As Variant
 '            For i = 1 To k.Count
@@ -360,21 +388,21 @@ Function toArray(c As Collection, Optional includeHead As Boolean = False) As Va
 '            offset4Head = 1
 '        End If
         
-        For i = 1 To c.Count
-            For j = 1 To k.Count
+        For i = 1 To c.count
+            For j = 1 To k.count
                 a(i, j) = c(i).Item(k(j))
             Next j
         Next i
     ElseIf isCollection(c(1)) Then
-        ReDim a(1 To c.Count + 1, 1 To c(1).Count) As Variant
-        For i = 1 To c.Count
-            For j = 1 To c(i).Count
+        ReDim a(1 To c.count + 1, 1 To c(1).count) As Variant
+        For i = 1 To c.count
+            For j = 1 To c(i).count
                 a(i, j) = c(i)(j)
             Next j
         Next i
     Else
-        ReDim a(1 To c.Count + 1) As Variant
-        For i = 1 To c.Count
+        ReDim a(1 To c.count + 1) As Variant
+        For i = 1 To c.count
             a(i) = c(i)
         Next i
     End If
@@ -383,8 +411,8 @@ Function toArray(c As Collection, Optional includeHead As Boolean = False) As Va
 End Function
 
 Sub writeTable(c As Collection, r As Range)
-    r.Resize(1, c(1).Count).value = toArray(keys(c(1)))
-    r.Offset(1, 0).Resize(c.Count, c(1).Count).value = toArray(c)
+    r.Resize(1, c(1).count).value = toArray(keys(c(1)))
+    r.Offset(1, 0).Resize(c.count, c(1).count).value = toArray(c)
 End Sub
 
 Function searchForTableRange(rTopLeft As Range) As Range
@@ -429,8 +457,8 @@ Function orderKeys()
 
 End Function
 
-Function has()
-
+Function has(d As Dictionary, k As String) As Boolean
+    has = d.Exists(k)
 End Function
 
 Function values(d As Dictionary) As Collection
