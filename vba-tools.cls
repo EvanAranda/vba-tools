@@ -171,6 +171,42 @@ Function sortBy(ByVal c As Collection, key As String, Optional lo As Long = -1, 
     End If
 End Function
 
+Function group()
+
+End Function
+
+Function groupBy()
+
+End Function
+
+Function size(o As Object) As Collection
+    If isRange(o) Then
+        size.Add o.Rows.Count
+        size.Add o.Columns.Count
+    ElseIf isCollection(o) Then
+        size.Add o.Count
+        If isCollection(o(1)) Then
+            size.Add o(1).Count
+        Else
+            size.Add 0
+        End If
+    ElseIf isDictionary(o) Then
+        size.Add o.Count
+    End If
+End Function
+' slice
+' splice
+' append
+' without
+' zip
+' insert
+' remove
+' fromRange
+' fromTableRange
+' toArray
+' writeTable
+' searchForTableRange
+
 Private Function partition(c As Collection, lo As Long, hi As Long) As Long
     Dim pivot As Variant
     
@@ -249,10 +285,6 @@ Function remove(c As Collection, i As Long)
     c.remove i
 End Function
 
-'Function fromArray(a As Variant) As Collection
-'
-'End Function
-
 Function fromRange(r As Range) As Collection
     Dim a As Variant, _
         is2D As Boolean, _
@@ -310,39 +342,49 @@ End Function
 
 Function toArray(c As Collection, Optional includeHead As Boolean = False) As Variant
     Dim a As Variant
-    ReDim a(1 To c.Count + 1, 1 To c(1).Count) As Variant
     
     Dim i As Long, _
         j As Long, _
-        k As Collection, _
-        offset4Head As Integer
-        offset4Head = 0
+        k As Collection
+'        offset4Head As Integer
+'        offset4Head = 0
         
     If isDictionary(c(1)) Then
         Set k = keys(c(1))
-        
-        If includeHead Then
-            ReDim a(1 To c.Count + 1, 1 To c(1).Count) As Variant
-            For i = 1 To k.Count
-                a(1, i) = k(i)
-            Next i
-            offset4Head = 1
-        End If
+        ReDim a(1 To c.Count + 1, 1 To c(1).Count) As Variant
+'        If includeHead Then
+'            ReDim a(1 To c.Count + 1, 1 To c(1).Count) As Variant
+'            For i = 1 To k.Count
+'                a(1, i) = k(i)
+'            Next i
+'            offset4Head = 1
+'        End If
         
         For i = 1 To c.Count
             For j = 1 To k.Count
-                a(i + offset4Head, j) = c(i).Item(k(j))
+                a(i, j) = c(i).Item(k(j))
+            Next j
+        Next i
+    ElseIf isCollection(c(1)) Then
+        ReDim a(1 To c.Count + 1, 1 To c(1).Count) As Variant
+        For i = 1 To c.Count
+            For j = 1 To c(i).Count
+                a(i, j) = c(i)(j)
             Next j
         Next i
     Else
-    
+        ReDim a(1 To c.Count + 1) As Variant
+        For i = 1 To c.Count
+            a(i) = c(i)
+        Next i
     End If
 
     toArray = a
 End Function
 
 Sub writeTable(c As Collection, r As Range)
-    r.Resize(c.Count + 1, c(1).Count).value = toArray(c, True)
+    r.Resize(1, c(1).Count).value = toArray(keys(c(1)))
+    r.Offset(1, 0).Resize(c.Count, c(1).Count).value = toArray(c)
 End Sub
 
 Function searchForTableRange(rTopLeft As Range) As Range
@@ -352,6 +394,44 @@ End Function
 '**********************************************
 ' Dictionary Methods
 '**********************************************
+
+' mapDict
+' extend
+' pick
+' without
+' sortKeys
+' orderKeys
+' has
+' values
+' keys
+
+Function mapDict()
+
+End Function
+
+Function extend()
+
+End Function
+
+Function pick()
+
+End Function
+
+Function without()
+
+End Function
+
+Function sortKeys()
+
+End Function
+
+Function orderKeys()
+
+End Function
+
+Function has()
+
+End Function
 
 Function values(d As Dictionary) As Collection
     Dim a As Variant, c As New Collection
@@ -385,11 +465,11 @@ Function isNumber(v As Variant) As Boolean
     isNumber = (t = vbDecimal Or t = vbDouble Or t = vbInteger Or t = vbLong Or t = vbLong)
 End Function
 
-Function isCollection(v As Object) As Boolean
+Function isCollection(v As Variant) As Boolean
     isCollection = (TypeOf v Is Collection)
 End Function
 
-Function isDictionary(v As Object) As Boolean
+Function isDictionary(v As Variant) As Boolean
     isDictionary = (TypeOf v Is Dictionary)
 End Function
 
@@ -422,5 +502,9 @@ End Function
 
 Function isObject(v As Variant) As Boolean
     isObject = (VarType(v) = vbObject)
+End Function
+
+Function isRange(r As Variant) As Boolean
+    isRange = (TypeOf v Is Range)
 End Function
 
